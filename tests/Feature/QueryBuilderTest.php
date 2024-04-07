@@ -143,4 +143,19 @@ class QueryBuilderTest extends TestCase
         });
     }
 
+    public function testUpdate() // Mengganti nama dari smartphone ke handphone
+    {
+        $this->insertCategories();
+
+        DB::table("categories")->where("id", "=", "SMARTPHONE")->update([
+            "name" => "Handphone"
+        ]);
+
+        $collection = DB::table("categories")->where("name", "=", "Handphone")->get();
+        self::assertCount(1, $collection);
+        $collection->each(function ($item) {
+            Log::info(json_encode($item));
+        });
+    }
+
 }
