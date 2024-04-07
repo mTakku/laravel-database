@@ -158,4 +158,23 @@ class QueryBuilderTest extends TestCase
         });
     }
 
+    public function testUpsert() // Mengupdate atau jika tidak ada menambah ke dalam database
+    {
+
+        DB::table("categories")->updateOrInsert([
+            "id" => "VOUCHER"
+        ], [
+            "name" => "Voucher",
+            "description" => "Ticket and Voucher",
+            "created_at" => "2024-10-10 10:10:10"
+        ]);
+
+        $collection = DB::table("categories")->where("id", "=", "Voucher")->get();
+        self::assertCount(1, $collection);
+        $collection->each(function ($item) {
+            Log::info(json_encode($item));
+        });
+    }
+
+
 }
