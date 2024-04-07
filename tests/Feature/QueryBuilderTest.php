@@ -16,6 +16,7 @@ class QueryBuilderTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp(); 
+        DB::delete("delete from products");
         DB::delete("delete from categories");
     }
     public function testInsert()
@@ -217,7 +218,7 @@ class QueryBuilderTest extends TestCase
         ]);
     }
 
-    public function testJoin()
+    public function testJoin() // Masih bingung
     {
         $this->insertProducts();
 
@@ -231,4 +232,19 @@ class QueryBuilderTest extends TestCase
             Log::info(json_encode($item));
         });
     }
+
+    public function testOrdering() // Sorting yg mahal asc yg lebih murah descending
+    {
+        $this->insertProducts();
+
+        $collection = DB::table("products")->whereNotNull("id")
+            ->orderBy("price", "desc")->orderBy("name", "asc")->get();
+
+        self::assertCount(2, $collection);
+        $collection->each(function ($item) {
+            Log::info(json_encode($item));
+        });
+
+    }
+
 }
