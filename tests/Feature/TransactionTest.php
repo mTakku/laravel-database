@@ -16,7 +16,7 @@ class TransactionTest extends TestCase
         DB::delete('delete from categories');
     }
 
-    public function testTransactionSuccess()
+    public function testTransactionSuccess() // Menambah ke database
     {
         DB::transaction(function () {
             DB::insert('insert into categories(id, name, description, created_at) values (?, ?, ? , ?)', [
@@ -32,7 +32,7 @@ class TransactionTest extends TestCase
 
     }
 
-    public function testTransactionFailed()
+    public function testTransactionFailed() // gagal atau menghapus database
     {
         try {
             DB::transaction(function () {
@@ -45,6 +45,46 @@ class TransactionTest extends TestCase
             });
         } catch (QueryException $error) {
             // expected
+        }
+
+        $results = DB::select("select * from categories");
+        self::assertCount(0, $results);
+
+    }
+
+    public function testMaualTransactionSuccess() // Manual yg success
+    {
+        try {
+            DB::beginTransaction();
+            DB::insert('insert into categories(id, name, description, created_at) values (?, ?, ? , ?)', [
+                "GADGET", "Gadget", "Gadget Category", "2020-10-10 10:10:10"
+            ]);
+            DB::insert('insert into categories(id, name, description, created_at) values (?, ?, ? , ?)', [
+                "FOOD", "Food", "Food Category", "2020-10-10 10:10:10"
+            ]);
+            DB::commit();
+        } catch (QueryException $error) {
+            DB::rollBack();
+        }
+
+        $results = DB::select("select * from categories");
+        self::assertCount(2, $results);
+
+    }
+
+    public function testMaualTransactionFailed() // Deletion
+    {
+        try {
+            DB::beginTransaction();
+            DB::insert('insert into categories(id, name, description, created_at) values (?, ?, ? , ?)', [
+                "GADGET", "Gadget", "Gadget Category", "2020-10-10 10:10:10"
+            ]);
+            DB::insert('insert into categories(id, name, description, created_at) values (?, ?, ? , ?)', [
+                "GADGET", "Food", "Food Category", "2020-10-10 10:10:10"
+            ]);
+            DB::commit();
+        } catch (QueryException $error) {
+            DB::rollBack();
         }
 
         $results = DB::select("select * from categories");
