@@ -33,4 +33,17 @@ class QueryBuilderTest extends TestCase
         self::assertEquals(2, $result[0]->total);
     }
 
+    public function testSelect()
+    {
+        $this->testInsert();
+
+        $collection = DB::table("categories")->select(["id", "name"])->get();
+        self::assertNotNull($collection);
+
+        $collection->each(function ($item) {
+            Log::info(json_encode($item));
+        });
+
+    }
+
 }
