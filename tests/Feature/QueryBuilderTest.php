@@ -302,4 +302,17 @@ class QueryBuilderTest extends TestCase
 
     }
 
+    public function testCursor() // Melakukan 1 query dan langsung mengambil semua data atau satu per satu
+    {
+        $this->insertManyCategories();
+
+        $collection = DB::table("categories")->orderBy("id")->cursor();
+        self::assertNotNull($collection);
+
+        $collection->each(function ($item) {
+            Log::info(json_encode($item));
+        });
+
+    }
+
 }
