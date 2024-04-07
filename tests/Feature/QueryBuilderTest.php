@@ -417,6 +417,24 @@ class QueryBuilderTest extends TestCase
 
     }
 
+    public function testPagination() // Membantu menghitung jumlah record, jumlah page, page saat ini dll
+    {
+        $this->insertCategories();
+
+        $paginate = DB::table("categories")->paginate(perPage: 2, page: 2);
+
+        self::assertEquals(2, $paginate->currentPage());
+        self::assertEquals(2, $paginate->perPage());
+        self::assertEquals(2, $paginate->lastPage());
+        self::assertEquals(4, $paginate->total());
+
+        $collection = $paginate->items();
+        self::assertCount(2, $collection);
+        foreach ($collection as $item) {
+            Log::info(json_encode($item));
+        }
+    }
+
 
 
 }
