@@ -18,6 +18,7 @@ class QueryBuilderTest extends TestCase
         parent::setUp(); 
         DB::delete("delete from products");
         DB::delete("delete from categories");
+        DB::delete("delete from counters");
     }
     public function testInsert()
     {
@@ -49,29 +50,7 @@ class QueryBuilderTest extends TestCase
 
     public function insertCategories()
     {
-        DB::table("categories")->insert([
-            "id" => "SMARTPHONE",
-            "name" => "Smartphone",
-            "created_at" => "2024-10-10 10:10:10"
-        ]);
-
-        DB::table("categories")->insert([
-            "id" => "FOOD",
-            "name" => "Food",
-            "created_at" => "2024-10-10 10:10:10"
-        ]);
-
-        DB::table("categories")->insert([
-            "id" => "LAPTOP",
-            "name" => "Laptop",
-            "created_at" => "2024-10-10 10:10:10"
-        ]);
-
-        DB::table("categories")->insert([
-            "id" => "FASHION",
-            "name" => "Fashion",
-            "created_at" => "2024-10-10 10:10:10"
-        ]);
+        $this->seed(CategorySeeder::class);
     }
 
     public function testWhere() // Cari menggunakan id
@@ -179,6 +158,7 @@ class QueryBuilderTest extends TestCase
 
     public function testIncrement() // menambah 1
     {
+        $this->seed(CounterSeeder::class);
 
         DB::table("counters")->where('id', '=', 'sample')->increment('counter', 1);
 
