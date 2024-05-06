@@ -6,128 +6,183 @@
 
 > #### INSTALASI
 > - PHP 8.1.0
-> - LARAVEL 10.0.3
+> - LARAVEL 10.2.3
 >   ```
 >   Composer Create-project laravel\laravel=v10.0.3 laravel-collection
 >   ```
+> - XAMPP
 ---
-> #### APA ITU COLLECTION?
-> - Collection adalah salah satu fitur dari framework Laravel yang berguna untuk memanipulasi data dengan kejelasan dan efesiensi.
->
-> Berikut kode membuat collection :
+> #### CARA MENJALANKAN PROGRAM
 > ```
->  $collection = collect([1, 2, 3]);
->  $this->assertEqualsCanonicalizing([1, 2, 3], $collection->all());
+> php artisan serve
 > ```
-> #### FOREACH
-> - forEach dalam Laravel Collection adalah metode untuk melakukan iterasi pada setiap item dalam koleksi data tanpa mengubah koleksi itu sendiri. Ini memungkinkan Anda untuk menjalankan fungsi pada setiap elemen dalam koleksi dengan gaya sintaks yang bersih dan mudah dibaca.
->
-> berikut kode membuat collection :
-> Berikut contoh foreach pada laravel collection :
->
+---
+> #### APA ITU LARAVEL DATABASE?
+> - Laravel memiliki fitur yang mempermudah kita membuatRaw SQL (manual), Query Builder dan EloquentORM
+> - Saat ini, laravel mendukung lima database utama yaitu :
 > ```
-> $collection = collect([1, 2, 3, 4, 5, 6, 7, 8, 9]);
-> foreach ($collection as $key => $value) {
->     $this->assertEquals($key + 1, $value);
+> MaridDB 10.3+
+> MySQL 5.7+
+> Postgres SQL 10.0+
+> SQLite 3.8.8+
+> SQL Server 2017+
+> ```
+>
+> #### DEBUG QUERY
+> - Debug Query dalam Laravel Database adalah proses memantau dan menganalisis query SQL yang dihasilkan oleh aplikasi Anda saat berinteraksi dengan database.
+>
+> Berikut contoh debug query pada laravel database :
+> ```
+> DB::listen(function (QueryExecuted $query){
+>     Log::info($query->sql);
+> });
+> ```
+>
+> #### CRUD SQL
+> - Dengan menggunakan DB facade, kita bisa melakukan Raw Query
+>
+> Berikut contoh kode raw sql :
+> ```
+> // Untuk melakukan insert data
+> DB::insert(sql,array): bool
+>
+> // Untuk melakukan update data
+> DB::update(sql,array): int
+>
+> // Untuk melakukan delete data
+> DB::delete(sql,array): int
+>
+> // Untuk melakukan select data
+> DB::select(sql,array): array
+>
+> // Untuk melakukan jenis sql lain
+> DB::statement(sql,array): bool
+>
+> // Untuk melakukan sql bukan prepared statement
+> DB::unprepared(sql,array): bool
+> ```
+>
+> #### DATABASE TRANSACTION
+> - Laravel database juga memiliki fitur untuk melakukan database transaction secara otomatis
+> - kita bisa menggunakan function ```DB::transaction```
+>
+> Berikut salah satu contoh kode database transaction :
+> ```
+> // Manual database transaction
+> DB::transaction(function () {
+> DB::insert('insert into categories(id, name, description, created_at) values (?, ?, ? , ?)', [
+> "GADGET", "Gadget", "Gadget Category", "2020-10-10 10:10:10"
+> ]);
+> DB::insert('insert into categories(id, name, description, created_at) values (?, ?, ? , ?)', [
+> "FOOD", "Food", "Food Category", "2020-10-10 10:10:10"
+> ]);
+> });
+> ```
+> #### QUERY BUILDER INSERT
+> - Untuk melakukan insert menggunakan query builder, kita bisa menggunakan method dengan prefix insert dengan parameter associative array dimana key nya adalah kolom, dan valuenya nilai yang akan disimpan diatabase
+> - InsertGetId() untuk memasukan data ke database, dan mengembalikan primary key yang diset secara auto generetae, cocok untuk tabel dengan id auto increment
+> - insertOrIgnore() untuk memasukan data ke database dan jika terjadi error maka akan di ignore
+>
+> Berikut contoh kode query builder insert :
+> ```
+> DB::table("categories")->insert([
+>     "id" => "GADGET",
+>     "name" => "Gadget"
+> ]);
+>  DB::table("categories")->insert([
+>     "id" => "FOOD",
+>     "name" => "Food"
+>
+> ]);
+>
+> $result = DB::select("select count(id) as total from categories");
+> self::assertEquals(2, $result[0]->total);
+> ```
+---
+> #### QUERY BUILDER SELECT
+> - Query builder select bisa kita gunakan untuk mengubah select kolom dimana defaultnya adalah semua kolom
+>
+> Berikut salah satu contoh kode query builder select :
+> ```
+> $this->testInsert();
+>
+> $collection = DB::table("categories")->select(["id", "name"])->get();
+> self::assertNotNull($collection);
+>
+> $collection->each(function ($item) {
+>     Log::info(json_encode($item));
+> });
+> ```
+> #### CHUNK RESULT
+> - Chunk Result dalam Laravel Query Builder memungkinkan Anda untuk membagi hasil query menjadi beberapa bagian (chunk) yang lebih kecil untuk diproses secara terpisah. Ini berguna ketika Anda perlu memproses jumlah data besar tanpa membebani memori server secara berlebihan.
+>
+> Berikut contoh kode chunk result :
+> ```
+> $this->insertManyCategories();
+>
+> DB::table("categories")->orderBy("id")
+>     ->chunk(10, function ($categories) {
+>         self::assertNotNull($categories);
+>         Log::info("Start Chunk");
+>         $categories->each(function ($category) {
+>     Log::info(json_encode($category));
+> });
+> Log::info("End Chunk");
+> });
+> ```
+>
+> #### LAZY RESULT
+> - Laravel memiliki fitur lazy, dimana kita bisa menjadikan query builder dengan lazy results, yang menghasilkan lazy collection
+> - karena hasilnya berupa lazy, data yang diambil dari database akan bertahap tidak langsung semuanya diload ke memory
+>
+> Berikut contoh salah satu kode lazy results :
+> ```
+> $this->insertManyCategories();
+>
+> $collection = DB::table("categories")->orderBy("id")->lazy(10)->take(3);
+> self::assertNotNull($collection);
+>
+> $collection->each(function ($item) {
+>     Log::info(json_encode($item));
+> });
+> ```
+>
+> #### CURSOR
+> - Selain chunk dan lazy, terdapat cara lain untuk membuat lazy result, yaitu menggunakan cursor
+> - cursor hanya akan melakukan query satu kali
+>
+> Berikut contoh kode cursor :
+> ```
+> $this->insertManyCategories();
+> 
+> $collection = DB::table("categories")->orderBy("id")->cursor();
+> self::assertNotNull($collection);
+>
+> $collection->each(function ($item) {
+>     Log::info(json_encode($item));
+> });
+> ```
+>
+> #### PAGINATION
+> - Daat kita membuat aplikasi Web atau RESTful API yang mengembalikan data di database, kita sering memberi informasi tentang pagination, misal jumlah record, jumlah page, page saat ini dan lain lain
+> - Pagination dalam Laravel memungkinkan Anda untuk membagi hasil query menjadi beberapa halaman untuk ditampilkan kepada pengguna secara terpisah.
+>
+> Berikut contoh kode pagination :
+> ```
+> $this->insertCategories();
+>
+> $paginate = DB::table("categories")->paginate(perPage: 2, page: 2);
+>
+> self::assertEquals(2, $paginate->currentPage());
+> self::assertEquals(2, $paginate->perPage());
+> self::assertEquals(2, $paginate->lastPage());
+> self::assertEquals(4, $paginate->total());
+>
+> $collection = $paginate->items();
+> self::assertCount(2, $collection);
+> foreach ($collection as $item) {
+>     Log::info(json_encode($item));
 > }
-> ```
->
-> #### MANIPULASI COLLECTION
-> - Manipulasi Collection dalam Laravel Collection adalah proses menggunakan metode bawaan seperti filter, map, sortBy, dan lainnya untuk mengubah, menyaring, atau mengurutkan data dalam koleksi dengan cara yang jelas dan efisien.
->
-> Berikut contoh kode manipulasi collection :
-> ```
-> $collection = collect([]);
-> $collection->push(1, 2, 3);
-> $this->assertEqualsCanonicalizing([1, 2, 3], $collection->all());
->
-> $result = $collection->pop();
-> $this->assertEquals(3, $result);
-> $this->assertEqualsCanonicalizing([1, 2], $collection->all());
-> ```
->
-> #### MAPPING
-> - Mapping dalam Laravel Collection adalah proses mengubah setiap elemen dalam koleksi dengan menggunakan fungsi tertentu dan mengembalikan koleksi baru yang berisi hasil transformasi tersebut.
-> - Dengan ```map()```, Anda dapat menerapkan fungsi pada setiap item dalam koleksi dan menghasilkan koleksi baru dengan nilai-nilai yang telah dimodifikasi sesuai dengan fungsi tersebut.
->
-> Berikut salah satu contoh kode mapping :
-> ```
-> $collection = collect([1, 2, 3]);
-> $result = $collection->map(function ($item) {
->     return $item * 2;
-> });
-> $this->assertEqualsCanonicalizing([2, 4, 6], $result->all());
-> ```
-> #### ZIPPING
-> - Zipping dalam Laravel Collection adalah proses menggabungkan dua koleksi secara sejajar, membentuk pasangan nilai dari setiap koleksi untuk membuat koleksi baru. Ini dilakukan dengan metode ```zip()```.
->
-> Berikut contoh kode zipping :
->
-> ```
-> $collection1 = collect([1, 2, 3]);
-> $collection2 = collect([4, 5, 6]);
-> $collection3 = $collection1->zip($collection2);
->
-> $this->assertEquals([
-> collect([1, 4]),
-> collect([2, 5]),
-> collect([3, 6]),
-> ], $collection3->all());
-> ```
----
-> #### CONCAT
-> - Concat Menggabungkan dua atau lebih data yang berupa string.
->
-> Berikut contoh kode concat :
-> ```
-> $collection1 = collect([1, 2, 3]);
-> $collection2 = collect([4, 5, 6]);
-> $collection3 = $collection1->concat($collection2);
->
-> $this->assertEqualsCanonicalizing([1, 2, 3, 4, 5, 6], $collection3->all());
-> ```
-> #### STRING REPRESENTATION
-> - String Representation dalam Laravel Collection adalah cara di mana koleksi ditampilkan sebagai string. Biasanya, elemen-elemen koleksi dipisahkan oleh koma dan diapit oleh tanda kurung kotak. Misalnya, koleksi ```[1, 2, 3]``` akan direpresentasikan sebagai ```"[1, 2, 3]"```. Ini berguna untuk debugging dan pencetakan.
->
-> #### FILTERING
-> - Filtering dalam Laravel Collection adalah proses memilih elemen-elemen tertentu dari koleksi berdasarkan kriteria yang ditentukan. Misalnya, Anda dapat menyaring elemen-elemen yang memenuhi kondisi tertentu, seperti elemen-elemen dengan nilai lebih besar dari suatu angka.
->
-> Berikut contoh salah satu kode filtering :
-> ```
-> $collection = collect([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-> $result = $collection->filter(function ($value, $key) {
-> return $value % 2 == 0;
-> });
->
-> $this->assertEqualsCanonicalizing([2, 4, 6, 8, 10], $result->all());
-> ```
->
-> #### PARTITIONING
-> - Partitioning dalam Laravel Collection adalah proses membagi koleksi menjadi dua kelompok berdasarkan kriteria tertentu. Misalnya, Anda dapat membagi koleksi menjadi kelompok elemen yang memenuhi kondisi tertentu dan kelompok lainnya yang tidak memenuhi kondisi tersebut.
->
-> Berikut contoh kode partitioning :
-> ```
-> $collection = collect([
->     "Farel" => 100,
->     "Zeta" => 80,
->     "Takku" => 90
->  ]);
->
-> [$result1, $result2] = $collection->partition(function ($value, $key) {
->     return $value >= 90;
-> });
-> ```
->
-> #### TESTING
-> - Testing dalam pengembangan perangkat lunak adalah proses untuk memverifikasi bahwa kode berfungsi seperti yang diharapkan
->
-> Berikut contoh kode testing :
-> ```
-> $collection = collect(["Farel", "Mercys", "Thona"]);
-> $this->assertTrue($collection->contains("Farel"));
-> $this->assertTrue($collection->contains(function ($value, $key) {
->     return $value == "Thona";
-> }));
 > ```
 >
 > #### GROUPING
@@ -153,53 +208,38 @@
 > $result = $collection->groupBy("department");
 > ```
 >
-> #### AGGREGATE
-> - Aggregation dalam Laravel Collection adalah proses pengumpulan atau perhitungan nilai-nilai dalam koleksi. Ini dapat dilakukan dengan metode-metode seperti sum(), avg(), max(), min(), dan count(), yang memungkinkan Anda untuk melakukan operasi agregasi dengan mudah.
+> #### DATABASE MIGRATION
+> - Laravel memiliki fitur bernama database migration, fitur ini digunakan untuk melakukan versioning schema database, dimana setiap perubahan akan di track sehingga akan selalu konsisten
 >
-> Berikut contoh kode aggregate :
+> Berikut contoh kode membuat database migration :
 > ```
-> $collection = collect([1, 2, 3, 4, 5, 6, 7, 8, 9]);
-> $result = $collection->sum();
-> $this->assertEquals(45, $result);
+> // pada terminal
+> php artisan make:migration create_table_counter
 >
-> $result = $collection->avg();
-> $this->assertEquals(5, $result);
->
-> $result = $collection->min();
-> $this->assertEquals(1, $result);
->
-> $result = $collection->max();
-> $this->assertEquals(9, $result);
+> // untuk migrate database ke dalam database mysql
+> php artisan migrate
 > ```
+> 
+> #### DATABASE SEEDING
+> - Database Seeding dalam Laravel adalah proses untuk memasukkan data awal ke dalam tabel database Anda. Ini berguna saat Anda ingin mengisi database dengan data contoh atau data yang dibutuhkan untuk pengujian atau pengembangan.
 >
-> #### REDUCE
-> - Metode reduce() dalam Laravel Collection digunakan untuk mereduksi koleksi menjadi satu nilai tunggal berdasarkan operasi yang ditentukan dalam fungsi callback. Dengan reduce(), Anda dapat melakukan operasi seperti menjumlahkan semua nilai atau menggabungkan string dalam koleksi.
->
-> Berikut contoh kode reduce :
+> Berikut contoh kode database seeding :
 > ```
-> $collection = collect([1, 2, 3, 4, 5, 6, 7, 8, 9]);
-> $result = $collection->reduce(function ($carry, $item) {
->     return $carry + $item;
-> });
-> $this->assertEquals(45, $result);
-> ```
+> // membuat seed baru
+> php artisan make:seed CategorySeeder
 >
-> #### LAZY COLLECTION
-> - Lazy Collection dalam Laravel adalah koleksi yang dievaluasi hanya saat dibutuhkan, tidak sekaligus. Ini membantu meningkatkan kinerja dengan menghindari evaluasi seluruh koleksi pada satu waktu.
->
-> Berikut contoh kode lazy collection :
-> ```
-> $collection = LazyCollection::make(function () {
-> $value = 0;
->
-> while (true) {
->     yield $value;
->     $value++;
+> // Contoh kode seeder
+> public function run(): void
+> {
+> DB::table("counters")->insert([
+> "id" => "sample",
+> "counter" => 0
+> ]);
 > }
-> });
 >
-> $result = $collection->take(10);
-> $this->assertEqualsCanonicalizing([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], $result->all()); 
+> // Untuk mengseed database lakukan
+> php artisan db:seed
+> ```
 <p align="center" >
   <b>PERTANYAAN DAN CATATAN TAMBAHAN</b>
 </p>
